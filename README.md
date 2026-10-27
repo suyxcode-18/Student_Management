@@ -557,7 +557,7 @@ results.
 
 ------------------------------------------------------------------------
 
-**Author:** Add your name here\
+**Author:** suyxcode and team\
 **Project:** Student Management System\
 **Purpose:** Learning FastAPI, PostgreSQL, frontend integration, REST
 APIs, and Postman testing.

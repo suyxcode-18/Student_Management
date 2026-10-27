@@ -1,0 +1,502 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Management System</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #1e293b;
+    }
+
+    header {
+      background: #1d4ed8;
+      color: white;
+      padding: 24px 7%;
+    }
+
+    header h1 { margin: 0 0 8px; }
+    header p { margin: 0; color: #dbeafe; }
+
+    main {
+      max-width: 1150px;
+      margin: 28px auto;
+      padding: 0 20px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .card, .panel {
+      background: white;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 3px 14px #0f172a0c;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: bold;
+      color: #1d4ed8;
+      margin-top: 10px;
+    }
+
+    .panel { margin-bottom: 22px; }
+    h2 { margin-top: 0; font-size: 20px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 7px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: 2px solid #bfdbfe;
+      border-color: #2563eb;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .primary { background: #2563eb; color: white; }
+    .secondary { background: #e2e8f0; color: #334155; }
+    .edit { background: #fef3c7; color: #92400e; }
+    .delete { background: #fee2e2; color: #b91c1c; }
+
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .toolbar input { max-width: 350px; }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      white-space: nowrap;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 14px 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #475569;
+      font-size: 13px;
+    }
+
+    td { font-size: 14px; }
+    .actions { display: flex; gap: 8px; }
+
+    #message {
+      display: none;
+      margin-bottom: 18px;
+      padding: 12px;
+      border-radius: 7px;
+    }
+
+    #message.success { display: block; background: #dcfce7; color: #166534; }
+    #message.error { display: block; background: #fee2e2; color: #991b1b; }
+
+    .muted { color: #64748b; font-size: 14px; }
+    .empty { text-align: center; padding: 30px; color: #64748b; }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .toolbar { flex-direction: column; }
+      .toolbar input { max-width: none; }
+      header { padding: 22px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Student Management System</h1>
+    <p>Manage student records with FastAPI and PostgreSQL</p>
+  </header>
+
+  <main>
+    <div id="message" role="status" aria-live="polite"></div>
+
+    <section class="stats">
+      <div class="card">
+        <div class="muted">Total Students</div>
+        <div class="stat-number" id="total">0</div>
+      </div>
+      <div class="card">
+        <div class="muted">Average Age</div>
+        <div class="stat-number" id="average">—</div>
+      </div>
+      <div class="card">
+        <div class="muted">Courses</div>
+        <div class="stat-number" id="courses">0</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 id="formTitle">Add New Student</h2>
+
+      <form id="studentForm">
+        <div class="form-grid">
+          <div>
+            <label for="name">Full Name</label>
+            <input id="name" required maxlength="100"
+                   placeholder="Enter student name">
+          </div>
+
+          <div>
+            <label for="age">Age</label>
+            <input id="age" type="number" required min="1" max="120"
+                   placeholder="Enter age">
+          </div>
+
+          <div>
+            <label for="email">Email</label>
+            <input id="email" type="email" required maxlength="255"
+                   placeholder="student@example.com">
+          </div>
+
+          <div>
+            <label for="course">Course</label>
+            <input id="course" required maxlength="100"
+                   placeholder="Enter course">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="primary" id="submitButton" type="submit">
+            Add Student
+          </button>
+          <button class="secondary" id="cancelButton"
+                  type="button" hidden>
+            Cancel Edit
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Student Records</h2>
+
+      <div class="toolbar">
+        <input id="search" type="search"
+               placeholder="Search name, email or course">
+        <button class="secondary" id="refreshButton" type="button">
+          Refresh
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Email</th>
+              <th>Course</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentTable">
+            <tr><td colspan="6" class="empty">Loading students...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API = "http://127.0.0.1:8000";
+
+    const form = document.getElementById("studentForm");
+    const table = document.getElementById("studentTable");
+    const message = document.getElementById("message");
+
+    let students = [];
+    let editingId = null;
+    let messageTimer;
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function showMessage(text, type = "success") {
+      clearTimeout(messageTimer);
+      message.textContent = text;
+      message.className = type;
+
+      messageTimer = setTimeout(() => {
+        message.className = "";
+        message.textContent = "";
+      }, 4500);
+    }
+
+    async function request(path, options = {}) {
+      let response;
+
+      try {
+        response = await fetch(API + path, {
+          ...options,
+          headers: {
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...options.headers
+          }
+        });
+      } catch {
+        throw new Error(
+          "Cannot connect to FastAPI. Make sure your backend is running."
+        );
+      }
+
+      if (!response.ok) {
+        let detail = `Request failed (${response.status})`;
+
+        try {
+          const data = await response.json();
+          detail = Array.isArray(data.detail)
+            ? data.detail.map(item => item.msg).join(", ")
+            : (data.detail || detail);
+        } catch {}
+
+        throw new Error(detail);
+      }
+
+      if (response.status === 204) return null;
+      return response.json();
+    }
+
+    async function loadStudents() {
+      table.innerHTML =
+        '<tr><td colspan="6" class="empty">Loading...</td></tr>';
+
+      try {
+        // Fetch all records, including pages of up to 100.
+        const all = [];
+        let skip = 0;
+        const limit = 100;
+
+        while (true) {
+          const batch = await request(
+            `/students?skip=${skip}&limit=${limit}`
+          );
+
+          if (!Array.isArray(batch)) {
+            throw new Error("Unexpected student list response.");
+          }
+
+          all.push(...batch);
+          if (batch.length < limit) break;
+          skip += limit;
+        }
+
+        students = all;
+        renderStudents();
+      } catch (error) {
+        table.innerHTML =
+          '<tr><td colspan="6" class="empty">Could not load records.</td></tr>';
+        showMessage(error.message, "error");
+      }
+    }
+
+    function renderStudents() {
+      const query = document.getElementById("search").value
+        .trim().toLowerCase();
+
+      const filtered = students.filter(student =>
+        [student.name, student.email, student.course]
+          .some(value => String(value).toLowerCase().includes(query))
+      );
+
+      document.getElementById("total").textContent = students.length;
+
+      const average = students.length
+        ? students.reduce((sum, student) => sum + Number(student.age), 0)
+          / students.length
+        : null;
+
+      document.getElementById("average").textContent =
+        average === null ? "—" : average.toFixed(1);
+
+      document.getElementById("courses").textContent =
+        new Set(students.map(student => student.course)).size;
+
+      if (!filtered.length) {
+        table.innerHTML =
+          '<tr><td colspan="6" class="empty">No students found.</td></tr>';
+        return;
+      }
+
+      table.innerHTML = filtered.map(student => `
+        <tr>
+          <td>${escapeHTML(student.id)}</td>
+          <td>${escapeHTML(student.name)}</td>
+          <td>${escapeHTML(student.age)}</td>
+          <td>${escapeHTML(student.email)}</td>
+          <td>${escapeHTML(student.course)}</td>
+          <td>
+            <div class="actions">
+              <button class="edit" data-action="edit"
+                data-id="${escapeHTML(student.id)}">Edit</button>
+              <button class="delete" data-action="delete"
+                data-id="${escapeHTML(student.id)}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const payload = {
+        name: document.getElementById("name").value.trim(),
+        age: Number(document.getElementById("age").value),
+        email: document.getElementById("email").value.trim(),
+        course: document.getElementById("course").value.trim()
+      };
+
+      const submitButton = document.getElementById("submitButton");
+      submitButton.disabled = true;
+
+      try {
+        if (editingId === null) {
+          await request("/students", {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          showMessage("Student added successfully!");
+        } else {
+          await request(`/students/${editingId}`, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+          });
+          showMessage("Student updated successfully!");
+        }
+
+        resetForm();
+        await loadStudents();
+      } catch (error) {
+        showMessage(error.message, "error");
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    table.addEventListener("click", async event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const id = button.dataset.id;
+      const student = students.find(item => String(item.id) === id);
+      if (!student) return;
+
+      if (button.dataset.action === "edit") {
+        editingId = student.id;
+
+        document.getElementById("name").value = student.name;
+        document.getElementById("age").value = student.age;
+        document.getElementById("email").value = student.email;
+        document.getElementById("course").value = student.course;
+
+        document.getElementById("formTitle").textContent = "Edit Student";
+        document.getElementById("submitButton").textContent = "Save Changes";
+        document.getElementById("cancelButton").hidden = false;
+
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      if (button.dataset.action === "delete") {
+        if (!confirm(`Delete student ${student.name} (ID ${id})?`)) {
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          await request(`/students/${id}`, { method: "DELETE" });
+          showMessage("Student deleted successfully!");
+
+          if (String(editingId) === id) resetForm();
+          await loadStudents();
+        } catch (error) {
+          showMessage(error.message, "error");
+          button.disabled = false;
+        }
+      }
+    });
+
+    function resetForm() {
+      form.reset();
+      editingId = null;
+      document.getElementById("formTitle").textContent = "Add New Student";
+      document.getElementById("submitButton").textContent = "Add Student";
+      document.getElementById("cancelButton").hidden = true;
+    }
+
+    document.getElementById("cancelButton")
+      .addEventListener("click", resetForm);
+
+    document.getElementById("refreshButton")
+      .addEventListener("click", loadStudents);
+
+    document.getElementById("search")
+      .addEventListener("input", renderStudents);
+
+    loadStudents();
+  </script>
+</body>
+</html>
